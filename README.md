@@ -4,7 +4,7 @@ An encoder for serializing Swift objects to NSDictionaries. Created from the Swi
 ## Usage
 With dates as `NSDate` objects:
 
-```
+```swift
 import Foundation
 
 struct UserDetails {
@@ -18,7 +18,7 @@ let dictEncoder = NSDictionaryEncoder.init()
 let profileDict: NSDictionary = try dictEncoder.encode(profile)
 ```
 Dates as formatted strings:
-```
+```swift
 // ...
 let formatter = DateFormatter()
 formatter.locale = Locale(identifier: "en_US")
