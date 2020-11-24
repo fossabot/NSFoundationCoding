@@ -15,7 +15,7 @@ import Foundation
 //===----------------------------------------------------------------------===//
 // NSDictionary Encoder
 //===----------------------------------------------------------------------===//
-/// `NSDictionaryEncoder` facilitates the encoding of `Encodable` values into property lists.
+/// `NSDictionaryEncoder` facilitates the encoding of `Encodable` objects into NSDictionaries.
 open class NSDictionaryEncoder {
 
   // MARK: - Options
@@ -29,7 +29,7 @@ open class NSDictionaryEncoder {
     let dateFormatter: DateFormatter?
   }
 
-  // MARK: - Constructing a Property List Encoder
+  // MARK: - Constructing a NSDictionary Encoder
   /// Initializes `self` with default strategies.
   public init() {}
 
@@ -44,10 +44,10 @@ open class NSDictionaryEncoder {
   }
 
   // MARK: - Encoding Values
-  /// Encodes the given top-level value and returns its property list representation.
+  /// Encodes the given top-level value and returns its NSDictionary representation.
   ///
   /// - parameter value: The value to encode.
-  /// - returns: A new `Data` value containing the encoded property list data.
+  /// - returns: A new `Data` value containing the encoded NSDictionary data.
   /// - throws: `EncodingError.invalidValue` if a non-conforming floating-point value is encountered during encoding, and the encoding strategy is `.throw`.
   /// - throws: An error if any value throws an error during encoding.
   open func encode<Value : Encodable, ResultType>(_ value: Value) throws -> ResultType {
