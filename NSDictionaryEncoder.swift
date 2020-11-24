@@ -233,7 +233,7 @@ fileprivate struct _NSDictKeyedEncodingContainer<K : CodingKey> : KeyedEncodingC
   }
 
   // MARK: - KeyedEncodingContainerProtocol Methods
-  public mutating func encodeNil(forKey key: Key)               throws { self.container[key.stringValue] = _nullNSString }
+  public mutating func encodeNil(forKey key: Key)               throws { self.container[key.stringValue] = _null }
   public mutating func encode(_ value: Bool, forKey key: Key)   throws { self.container[key.stringValue] = self.encoder.box(value) }
   public mutating func encode(_ value: Int, forKey key: Key)    throws { self.container[key.stringValue] = self.encoder.box(value) }
   public mutating func encode(_ value: Int8, forKey key: Key)   throws { self.container[key.stringValue] = self.encoder.box(value) }
@@ -309,7 +309,7 @@ fileprivate struct _NSDictUnkeyedEncodingContainer : UnkeyedEncodingContainer {
   }
 
   // MARK: - UnkeyedEncodingContainer Methods
-  public mutating func encodeNil()             throws { self.container.add(_nullNSString) }
+  public mutating func encodeNil()             throws { self.container.add(_null) }
   public mutating func encode(_ value: Bool)   throws { self.container.add(self.encoder.box(value)) }
   public mutating func encode(_ value: Int)    throws { self.container.add(self.encoder.box(value)) }
   public mutating func encode(_ value: Int8)   throws { self.container.add(self.encoder.box(value)) }
@@ -364,7 +364,7 @@ extension _DictEncoder : SingleValueEncodingContainer {
 
   public func encodeNil() throws {
     assertCanEncodeNewValue()
-    self.storage.push(container: _nullNSString)
+    self.storage.push(container: _null)
   }
 
   public func encode(_ value: Bool) throws {
@@ -570,9 +570,8 @@ fileprivate class _NSDictReferencingEncoder : _DictEncoder {
 //===----------------------------------------------------------------------===//
 // Shared Null Representation
 //===----------------------------------------------------------------------===//
-// Since plists do not support null values by default, we will encode them as "$null".
-fileprivate let _null = "$null"
-fileprivate let _nullNSString = NSString(string: _null)
+// Since NSDictionaries do not support nil values by default, we will encode them as NSNull.
+fileprivate let _null = NSNull.init()
 
 //===----------------------------------------------------------------------===//
 // Shared Key Types
