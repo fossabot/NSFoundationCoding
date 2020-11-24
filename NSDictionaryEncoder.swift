@@ -50,10 +50,10 @@ open class NSDictionaryEncoder {
   }
 
   // MARK: - Encoding Values
-  /// Encodes the given top-level value and returns its NSDictionary representation.
+  /// Encodes the given top-level value and returns its representation.
   ///
   /// - parameter value: The value to encode.
-  /// - returns: A new `Data` value containing the encoded NSDictionary data.
+  /// - returns: A new `Data` value containing the encoded container data.
   /// - throws: `EncodingError.invalidValue` if a non-conforming floating-point value is encountered during encoding, and the encoding strategy is `.throw`.
   /// - throws: An error if any value throws an error during encoding.
   open func encode<Value : Encodable, ResultType>(_ value: Value) throws -> ResultType {
@@ -81,14 +81,14 @@ open class NSDictionaryEncoder {
     return result
   }
 
-  /// Encodes the given top-level value and returns its NSDictionary-type representation.
+  /// Encodes the given top-level value and returns its container representation.
   ///
   /// - parameter value: The value to encode.
   /// - returns: A new top-level array or dictionary representing the value.
   /// - throws: `EncodingError.invalidValue` if a non-conforming floating-point value is encountered during encoding, and the encoding strategy is `.throw`.
   /// - throws: An error if any value throws an error during encoding.
   internal func encodeToTopLevelContainer<Value : Encodable>(_ value: Value) throws -> Any {
-    let encoder = _DictEncoder(options: self.options)
+    let encoder = _ContEncoder(options: self.options)
     guard let topLevel = try encoder.box_(value) else {
       throw EncodingError.invalidValue(value,
                                        EncodingError.Context(codingPath: [],
@@ -99,11 +99,11 @@ open class NSDictionaryEncoder {
   }
 }
 
-// MARK: - _DictEncoder
-fileprivate class _DictEncoder : Encoder {
+// MARK: - _ContEncoder
+fileprivate class _ContEncoder : Encoder {
   // MARK: Properties
   /// The encoder's storage.
-  fileprivate var storage: _NSDictEncodingStorage
+  fileprivate var storage: _EncodingStorage
 
   /// Options set on the top-level encoder.
   fileprivate let options: NSDictionaryEncoder._Options
@@ -120,7 +120,7 @@ fileprivate class _DictEncoder : Encoder {
   /// Initializes `self` with the given top-level encoder options.
   fileprivate init(options: NSDictionaryEncoder._Options, codingPath: [CodingKey] = []) {
     self.options = options
-    self.storage = _NSDictEncodingStorage()
+    self.storage = _EncodingStorage()
     self.codingPath = codingPath
   }
 
@@ -152,7 +152,7 @@ fileprivate class _DictEncoder : Encoder {
       topContainer = container
     }
 
-    let container = _NSDictKeyedEncodingContainer<Key>(referencing: self, codingPath: self.codingPath, wrapping: topContainer)
+    let container = _KeyedEncodingContainer<Key>(referencing: self, codingPath: self.codingPath, wrapping: topContainer)
     return KeyedEncodingContainer(container)
   }
 
@@ -170,7 +170,7 @@ fileprivate class _DictEncoder : Encoder {
       topContainer = container
     }
 
-    return _NSDictUnkeyedEncodingContainer(referencing: self, codingPath: self.codingPath, wrapping: topContainer)
+    return _UnkeyedEncodingContainer(referencing: self, codingPath: self.codingPath, wrapping: topContainer)
   }
 
   public func singleValueContainer() -> SingleValueEncodingContainer {
@@ -179,7 +179,7 @@ fileprivate class _DictEncoder : Encoder {
 }
 
 // MARK: - Encoding Storage and Containers
-fileprivate struct _NSDictEncodingStorage {
+fileprivate struct _EncodingStorage {
   // MARK: Properties
   /// The container stack.
   /// Elements may be any one of the plist types (NSNumber, NSString, NSDate, NSArray, NSDictionary).
@@ -217,12 +217,12 @@ fileprivate struct _NSDictEncodingStorage {
 }
 
 // MARK: - Encoding Containers
-fileprivate struct _NSDictKeyedEncodingContainer<K : CodingKey> : KeyedEncodingContainerProtocol {
+fileprivate struct _KeyedEncodingContainer<K : CodingKey> : KeyedEncodingContainerProtocol {
   typealias Key = K
 
   // MARK: Properties
   /// A reference to the encoder we're writing to.
-  private let encoder: _DictEncoder
+  private let encoder: _ContEncoder
 
   /// A reference to the container we're writing to.
   private let container: NSMutableDictionary
@@ -232,7 +232,7 @@ fileprivate struct _NSDictKeyedEncodingContainer<K : CodingKey> : KeyedEncodingC
 
   // MARK: - Initialization
   /// Initializes `self` with the given references.
-  fileprivate init(referencing encoder: _DictEncoder, codingPath: [CodingKey], wrapping container: NSMutableDictionary) {
+  fileprivate init(referencing encoder: _ContEncoder, codingPath: [CodingKey], wrapping container: NSMutableDictionary) {
     self.encoder = encoder
     self.codingPath = codingPath
     self.container = container
@@ -268,7 +268,7 @@ fileprivate struct _NSDictKeyedEncodingContainer<K : CodingKey> : KeyedEncodingC
     self.codingPath.append(key)
     defer { self.codingPath.removeLast() }
 
-    let container = _NSDictKeyedEncodingContainer<NestedKey>(referencing: self.encoder, codingPath: self.codingPath, wrapping: dictionary)
+    let container = _KeyedEncodingContainer<NestedKey>(referencing: self.encoder, codingPath: self.codingPath, wrapping: dictionary)
     return KeyedEncodingContainer(container)
   }
 
@@ -278,22 +278,22 @@ fileprivate struct _NSDictKeyedEncodingContainer<K : CodingKey> : KeyedEncodingC
 
     self.codingPath.append(key)
     defer { self.codingPath.removeLast() }
-    return _NSDictUnkeyedEncodingContainer(referencing: self.encoder, codingPath: self.codingPath, wrapping: array)
+    return _UnkeyedEncodingContainer(referencing: self.encoder, codingPath: self.codingPath, wrapping: array)
   }
 
   public mutating func superEncoder() -> Encoder {
-    return _NSDictReferencingEncoder(referencing: self.encoder, at: _NSDictKey.super, wrapping: self.container)
+    return _ReferencingEncoder(referencing: self.encoder, at: _NSDictKey.super, wrapping: self.container)
   }
 
   public mutating func superEncoder(forKey key: Key) -> Encoder {
-    return _NSDictReferencingEncoder(referencing: self.encoder, at: key, wrapping: self.container)
+    return _ReferencingEncoder(referencing: self.encoder, at: key, wrapping: self.container)
   }
 }
 
-fileprivate struct _NSDictUnkeyedEncodingContainer : UnkeyedEncodingContainer {
+fileprivate struct _UnkeyedEncodingContainer : UnkeyedEncodingContainer {
   // MARK: Properties
   /// A reference to the encoder we're writing to.
-  private let encoder: _DictEncoder
+  private let encoder: _ContEncoder
 
   /// A reference to the container we're writing to.
   private let container: NSMutableArray
@@ -308,7 +308,7 @@ fileprivate struct _NSDictUnkeyedEncodingContainer : UnkeyedEncodingContainer {
 
   // MARK: - Initialization
   /// Initializes `self` with the given references.
-  fileprivate init(referencing encoder: _DictEncoder, codingPath: [CodingKey], wrapping container: NSMutableArray) {
+  fileprivate init(referencing encoder: _ContEncoder, codingPath: [CodingKey], wrapping container: NSMutableArray) {
     self.encoder = encoder
     self.codingPath = codingPath
     self.container = container
@@ -344,7 +344,7 @@ fileprivate struct _NSDictUnkeyedEncodingContainer : UnkeyedEncodingContainer {
     let dictionary = NSMutableDictionary()
     self.container.add(dictionary)
 
-    let container = _NSDictKeyedEncodingContainer<NestedKey>(referencing: self.encoder, codingPath: self.codingPath, wrapping: dictionary)
+    let container = _KeyedEncodingContainer<NestedKey>(referencing: self.encoder, codingPath: self.codingPath, wrapping: dictionary)
     return KeyedEncodingContainer(container)
   }
 
@@ -354,15 +354,15 @@ fileprivate struct _NSDictUnkeyedEncodingContainer : UnkeyedEncodingContainer {
 
     let array = NSMutableArray()
     self.container.add(array)
-    return _NSDictUnkeyedEncodingContainer(referencing: self.encoder, codingPath: self.codingPath, wrapping: array)
+    return _UnkeyedEncodingContainer(referencing: self.encoder, codingPath: self.codingPath, wrapping: array)
   }
 
   public mutating func superEncoder() -> Encoder {
-    return _NSDictReferencingEncoder(referencing: self.encoder, at: self.container.count, wrapping: self.container)
+    return _ReferencingEncoder(referencing: self.encoder, at: self.container.count, wrapping: self.container)
   }
 }
 
-extension _DictEncoder : SingleValueEncodingContainer {
+extension _ContEncoder : SingleValueEncodingContainer {
   // MARK: - SingleValueEncodingContainer Methods
   private func assertCanEncodeNewValue() {
     precondition(self.canEncodeNewValue, "Attempt to encode value through single value container when previously value already encoded.")
@@ -450,7 +450,7 @@ extension _DictEncoder : SingleValueEncodingContainer {
 }
 
 // MARK: - Concrete Value Representations
-extension _DictEncoder {
+extension _ContEncoder {
 
   /// Returns the given value boxed in a container appropriate for pushing onto the container stack.
   fileprivate func box(_ value: Bool)   -> NSObject { return NSNumber(value: value) }
@@ -483,7 +483,7 @@ extension _DictEncoder {
       return (value as! NSData)
     }
 
-    // The value should request a container from the _DictEncoder.
+    // The value should request a container from the _ContEncoder.
     let depth = self.storage.count
     do {
       try value.encode(to: self)
@@ -505,10 +505,10 @@ extension _DictEncoder {
   }
 }
 
-// MARK: - _NSDictReferencingEncoder
-/// _NSDictReferencingEncoder is a special subclass of _DictEncoder which has its own storage, but references the contents of a different encoder.
+// MARK: - _ReferencingEncoder
+/// _ReferencingEncoder is a special subclass of _ContEncoder which has its own storage, but references the contents of a different encoder.
 /// It's used in superEncoder(), which returns a new encoder for encoding a superclass -- the lifetime of the encoder should not escape the scope it's created in, but it doesn't necessarily know when it's done being used (to write to the original container).
-fileprivate class _NSDictReferencingEncoder : _DictEncoder {
+fileprivate class _ReferencingEncoder : _ContEncoder {
   // MARK: Reference types.
   /// The type of container we're referencing.
   private enum Reference {
@@ -521,14 +521,14 @@ fileprivate class _NSDictReferencingEncoder : _DictEncoder {
 
   // MARK: - Properties
   /// The encoder we're referencing.
-  private let encoder: _DictEncoder
+  private let encoder: _ContEncoder
 
   /// The container reference itself.
   private let reference: Reference
 
   // MARK: - Initialization
   /// Initializes `self` by referencing the given array container in the given encoder.
-  fileprivate init(referencing encoder: _DictEncoder, at index: Int, wrapping array: NSMutableArray) {
+  fileprivate init(referencing encoder: _ContEncoder, at index: Int, wrapping array: NSMutableArray) {
     self.encoder = encoder
     self.reference = .array(array, index)
     super.init(options: encoder.options, codingPath: encoder.codingPath)
@@ -537,7 +537,7 @@ fileprivate class _NSDictReferencingEncoder : _DictEncoder {
   }
 
   /// Initializes `self` by referencing the given dictionary container in the given encoder.
-  fileprivate init(referencing encoder: _DictEncoder, at key: CodingKey, wrapping dictionary: NSMutableDictionary) {
+  fileprivate init(referencing encoder: _ContEncoder, at key: CodingKey, wrapping dictionary: NSMutableDictionary) {
     self.encoder = encoder
     self.reference = .dictionary(dictionary, key.stringValue)
     super.init(options: encoder.options, codingPath: encoder.codingPath)
@@ -576,7 +576,7 @@ fileprivate class _NSDictReferencingEncoder : _DictEncoder {
 //===----------------------------------------------------------------------===//
 // Shared Null Representation
 //===----------------------------------------------------------------------===//
-// Since NSDictionaries do not support nil values by default, we will encode them as NSNull.
+// Since NSDictionaries and NSArrays do not support nil values by default, we will encode them as NSNull.
 fileprivate let _null = NSNull.init()
 
 //===----------------------------------------------------------------------===//
