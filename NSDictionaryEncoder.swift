@@ -1,3 +1,9 @@
+//
+//  NSDictionaryEncoder.swift
+//  SwiftNSDictEncoder
+//
+//  Created by Otto Lindblom on 18.11.2020.
+//
 //===----------------------------------------------------------------------===//
 //
 // This source file is a modification of the PropertyListEncoder from the Swift.org open source project
@@ -55,15 +61,15 @@ open class NSDictionaryEncoder {
     if topLevel is NSNumber {
       throw EncodingError.invalidValue(value,
                                        EncodingError.Context(codingPath: [],
-                                                             debugDescription: "Top-level \(Value.self) encoded as number property list fragment."))
+                                                             debugDescription: "Top-level \(Value.self) encoded as number."))
     } else if topLevel is NSString {
       throw EncodingError.invalidValue(value,
                                        EncodingError.Context(codingPath: [],
-                                                             debugDescription: "Top-level \(Value.self) encoded as string property list fragment."))
+                                                             debugDescription: "Top-level \(Value.self) encoded as string."))
     } else if topLevel is NSDate {
       throw EncodingError.invalidValue(value,
                                        EncodingError.Context(codingPath: [],
-                                                             debugDescription: "Top-level \(Value.self) encoded as date property list fragment."))
+                                                             debugDescription: "Top-level \(Value.self) encoded as date."))
     }
 
     guard let result = topLevel as? ResultType else {
