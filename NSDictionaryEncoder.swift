@@ -75,7 +75,7 @@ open class NSDictionaryEncoder {
     return result
   }
 
-  /// Encodes the given top-level value and returns its plist-type representation.
+  /// Encodes the given top-level value and returns its NSDictionary-type representation.
   ///
   /// - parameter value: The value to encode.
   /// - returns: A new top-level array or dictionary representing the value.
@@ -97,7 +97,7 @@ open class NSDictionaryEncoder {
 fileprivate class _DictEncoder : Encoder {
   // MARK: Properties
   /// The encoder's storage.
-  fileprivate var storage: _PlistEncodingStorage
+  fileprivate var storage: _NSDictEncodingStorage
 
   /// Options set on the top-level encoder.
   fileprivate let options: NSDictionaryEncoder._Options
@@ -114,7 +114,7 @@ fileprivate class _DictEncoder : Encoder {
   /// Initializes `self` with the given top-level encoder options.
   fileprivate init(options: NSDictionaryEncoder._Options, codingPath: [CodingKey] = []) {
     self.options = options
-    self.storage = _PlistEncodingStorage()
+    self.storage = _NSDictEncodingStorage()
     self.codingPath = codingPath
   }
 
@@ -146,7 +146,7 @@ fileprivate class _DictEncoder : Encoder {
       topContainer = container
     }
 
-    let container = _PlistKeyedEncodingContainer<Key>(referencing: self, codingPath: self.codingPath, wrapping: topContainer)
+    let container = _NSDictKeyedEncodingContainer<Key>(referencing: self, codingPath: self.codingPath, wrapping: topContainer)
     return KeyedEncodingContainer(container)
   }
 
@@ -164,7 +164,7 @@ fileprivate class _DictEncoder : Encoder {
       topContainer = container
     }
 
-    return _PlistUnkeyedEncodingContainer(referencing: self, codingPath: self.codingPath, wrapping: topContainer)
+    return _NSDictUnkeyedEncodingContainer(referencing: self, codingPath: self.codingPath, wrapping: topContainer)
   }
 
   public func singleValueContainer() -> SingleValueEncodingContainer {
@@ -173,7 +173,7 @@ fileprivate class _DictEncoder : Encoder {
 }
 
 // MARK: - Encoding Storage and Containers
-fileprivate struct _PlistEncodingStorage {
+fileprivate struct _NSDictEncodingStorage {
   // MARK: Properties
   /// The container stack.
   /// Elements may be any one of the plist types (NSNumber, NSString, NSDate, NSArray, NSDictionary).
@@ -211,7 +211,7 @@ fileprivate struct _PlistEncodingStorage {
 }
 
 // MARK: - Encoding Containers
-fileprivate struct _PlistKeyedEncodingContainer<K : CodingKey> : KeyedEncodingContainerProtocol {
+fileprivate struct _NSDictKeyedEncodingContainer<K : CodingKey> : KeyedEncodingContainerProtocol {
   typealias Key = K
 
   // MARK: Properties
@@ -233,7 +233,7 @@ fileprivate struct _PlistKeyedEncodingContainer<K : CodingKey> : KeyedEncodingCo
   }
 
   // MARK: - KeyedEncodingContainerProtocol Methods
-  public mutating func encodeNil(forKey key: Key)               throws { self.container[key.stringValue] = _plistNullNSString }
+  public mutating func encodeNil(forKey key: Key)               throws { self.container[key.stringValue] = _nullNSString }
   public mutating func encode(_ value: Bool, forKey key: Key)   throws { self.container[key.stringValue] = self.encoder.box(value) }
   public mutating func encode(_ value: Int, forKey key: Key)    throws { self.container[key.stringValue] = self.encoder.box(value) }
   public mutating func encode(_ value: Int8, forKey key: Key)   throws { self.container[key.stringValue] = self.encoder.box(value) }
@@ -262,7 +262,7 @@ fileprivate struct _PlistKeyedEncodingContainer<K : CodingKey> : KeyedEncodingCo
     self.codingPath.append(key)
     defer { self.codingPath.removeLast() }
 
-    let container = _PlistKeyedEncodingContainer<NestedKey>(referencing: self.encoder, codingPath: self.codingPath, wrapping: dictionary)
+    let container = _NSDictKeyedEncodingContainer<NestedKey>(referencing: self.encoder, codingPath: self.codingPath, wrapping: dictionary)
     return KeyedEncodingContainer(container)
   }
 
@@ -272,19 +272,19 @@ fileprivate struct _PlistKeyedEncodingContainer<K : CodingKey> : KeyedEncodingCo
 
     self.codingPath.append(key)
     defer { self.codingPath.removeLast() }
-    return _PlistUnkeyedEncodingContainer(referencing: self.encoder, codingPath: self.codingPath, wrapping: array)
+    return _NSDictUnkeyedEncodingContainer(referencing: self.encoder, codingPath: self.codingPath, wrapping: array)
   }
 
   public mutating func superEncoder() -> Encoder {
-    return _PlistReferencingEncoder(referencing: self.encoder, at: _PlistKey.super, wrapping: self.container)
+    return _NSDictReferencingEncoder(referencing: self.encoder, at: _NSDictKey.super, wrapping: self.container)
   }
 
   public mutating func superEncoder(forKey key: Key) -> Encoder {
-    return _PlistReferencingEncoder(referencing: self.encoder, at: key, wrapping: self.container)
+    return _NSDictReferencingEncoder(referencing: self.encoder, at: key, wrapping: self.container)
   }
 }
 
-fileprivate struct _PlistUnkeyedEncodingContainer : UnkeyedEncodingContainer {
+fileprivate struct _NSDictUnkeyedEncodingContainer : UnkeyedEncodingContainer {
   // MARK: Properties
   /// A reference to the encoder we're writing to.
   private let encoder: _DictEncoder
@@ -309,7 +309,7 @@ fileprivate struct _PlistUnkeyedEncodingContainer : UnkeyedEncodingContainer {
   }
 
   // MARK: - UnkeyedEncodingContainer Methods
-  public mutating func encodeNil()             throws { self.container.add(_plistNullNSString) }
+  public mutating func encodeNil()             throws { self.container.add(_nullNSString) }
   public mutating func encode(_ value: Bool)   throws { self.container.add(self.encoder.box(value)) }
   public mutating func encode(_ value: Int)    throws { self.container.add(self.encoder.box(value)) }
   public mutating func encode(_ value: Int8)   throws { self.container.add(self.encoder.box(value)) }
@@ -326,33 +326,33 @@ fileprivate struct _PlistUnkeyedEncodingContainer : UnkeyedEncodingContainer {
   public mutating func encode(_ value: String) throws { self.container.add(self.encoder.box(value)) }
 
   public mutating func encode<T : Encodable>(_ value: T) throws {
-    self.encoder.codingPath.append(_PlistKey(index: self.count))
+    self.encoder.codingPath.append(_NSDictKey(index: self.count))
     defer { self.encoder.codingPath.removeLast() }
     self.container.add(try self.encoder.box(value))
   }
 
   public mutating func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type) -> KeyedEncodingContainer<NestedKey> {
-    self.codingPath.append(_PlistKey(index: self.count))
+    self.codingPath.append(_NSDictKey(index: self.count))
     defer { self.codingPath.removeLast() }
 
     let dictionary = NSMutableDictionary()
     self.container.add(dictionary)
 
-    let container = _PlistKeyedEncodingContainer<NestedKey>(referencing: self.encoder, codingPath: self.codingPath, wrapping: dictionary)
+    let container = _NSDictKeyedEncodingContainer<NestedKey>(referencing: self.encoder, codingPath: self.codingPath, wrapping: dictionary)
     return KeyedEncodingContainer(container)
   }
 
   public mutating func nestedUnkeyedContainer() -> UnkeyedEncodingContainer {
-    self.codingPath.append(_PlistKey(index: self.count))
+    self.codingPath.append(_NSDictKey(index: self.count))
     defer { self.codingPath.removeLast() }
 
     let array = NSMutableArray()
     self.container.add(array)
-    return _PlistUnkeyedEncodingContainer(referencing: self.encoder, codingPath: self.codingPath, wrapping: array)
+    return _NSDictUnkeyedEncodingContainer(referencing: self.encoder, codingPath: self.codingPath, wrapping: array)
   }
 
   public mutating func superEncoder() -> Encoder {
-    return _PlistReferencingEncoder(referencing: self.encoder, at: self.container.count, wrapping: self.container)
+    return _NSDictReferencingEncoder(referencing: self.encoder, at: self.container.count, wrapping: self.container)
   }
 }
 
@@ -364,7 +364,7 @@ extension _DictEncoder : SingleValueEncodingContainer {
 
   public func encodeNil() throws {
     assertCanEncodeNewValue()
-    self.storage.push(container: _plistNullNSString)
+    self.storage.push(container: _nullNSString)
   }
 
   public func encode(_ value: Bool) throws {
@@ -499,10 +499,10 @@ extension _DictEncoder {
   }
 }
 
-// MARK: - _PlistReferencingEncoder
-/// _PlistReferencingEncoder is a special subclass of _DictEncoder which has its own storage, but references the contents of a different encoder.
+// MARK: - _NSDictReferencingEncoder
+/// _NSDictReferencingEncoder is a special subclass of _DictEncoder which has its own storage, but references the contents of a different encoder.
 /// It's used in superEncoder(), which returns a new encoder for encoding a superclass -- the lifetime of the encoder should not escape the scope it's created in, but it doesn't necessarily know when it's done being used (to write to the original container).
-fileprivate class _PlistReferencingEncoder : _DictEncoder {
+fileprivate class _NSDictReferencingEncoder : _DictEncoder {
   // MARK: Reference types.
   /// The type of container we're referencing.
   private enum Reference {
@@ -527,7 +527,7 @@ fileprivate class _PlistReferencingEncoder : _DictEncoder {
     self.reference = .array(array, index)
     super.init(options: encoder.options, codingPath: encoder.codingPath)
 
-    self.codingPath.append(_PlistKey(index: index))
+    self.codingPath.append(_NSDictKey(index: index))
   }
 
   /// Initializes `self` by referencing the given dictionary container in the given encoder.
@@ -568,16 +568,16 @@ fileprivate class _PlistReferencingEncoder : _DictEncoder {
 }
 
 //===----------------------------------------------------------------------===//
-// Shared Plist Null Representation
+// Shared Null Representation
 //===----------------------------------------------------------------------===//
 // Since plists do not support null values by default, we will encode them as "$null".
-fileprivate let _plistNull = "$null"
-fileprivate let _plistNullNSString = NSString(string: _plistNull)
+fileprivate let _null = "$null"
+fileprivate let _nullNSString = NSString(string: _null)
 
 //===----------------------------------------------------------------------===//
 // Shared Key Types
 //===----------------------------------------------------------------------===//
-fileprivate struct _PlistKey : CodingKey {
+fileprivate struct _NSDictKey : CodingKey {
   public var stringValue: String
   public var intValue: Int?
 
@@ -596,5 +596,5 @@ fileprivate struct _PlistKey : CodingKey {
     self.intValue = index
   }
 
-  fileprivate static let `super` = _PlistKey(stringValue: "super")!
+  fileprivate static let `super` = _NSDictKey(stringValue: "super")!
 }
