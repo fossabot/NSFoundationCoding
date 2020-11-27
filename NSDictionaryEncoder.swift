@@ -605,15 +605,15 @@ open class NSDictionaryDecoder {
     /// - returns: A value of the requested type along with the detected format of the container.
     /// - throws: `DecodingError.dataCorrupted` if values requested from the payload are corrupted, or if the given data is not a valid NSDictionary or NSArray.
     /// - throws: An error if any value throws an error during decoding.
-    open func decode<T : Decodable>(_ type: T.Type, from value: NSObject) throws -> T {
+    open func decode<T : Decodable>(_ type: T.Type, from data: NSObject) throws -> T {
         let topLevel: Any
-        if let dict = value as? NSDictionary {
+        if let dict = data as? NSDictionary {
             topLevel = dict
-        } else if let array = value as? NSArray {
+        } else if let array = data as? NSArray {
             topLevel = array
         } else {
             throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: [],
-                                                                    debugDescription: "Expected a valid NSDictionary or NSArray as input."))
+                                                                    debugDescription: "Expected NSDictionary or NSArray as input."))
         }
 
         return try decode(type, fromTopLevel: topLevel)
@@ -1736,7 +1736,7 @@ extension _ContDecoder {
 //===----------------------------------------------------------------------===//
 // Shared Null Representation
 //===----------------------------------------------------------------------===//
-// Since NSDictionaries and NSArrays do not support nil values by default, we will encode them as NSNull.
+// Since NSObjects do generally not support nil values, we will encode them as NSNull.
 fileprivate let _null = NSNull.init()
 
 //===----------------------------------------------------------------------===//
