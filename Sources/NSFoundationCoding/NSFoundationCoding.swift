@@ -1,6 +1,5 @@
 //
-//  NSDictionaryEncoder.swift
-//  SwiftNSDictEncoder
+//  NSFoundationCoding.swift
 //
 //  Created by Otto Lindblom on 18.11.2020.
 //
@@ -19,10 +18,10 @@
 import Foundation
 
 //===----------------------------------------------------------------------===//
-// NSDictionary Encoder
+// NSFoundation Container Encoder
 //===----------------------------------------------------------------------===//
-/// `NSDictionaryEncoder` facilitates the encoding of `Encodable` objects into NSDictionaries.
-open class NSDictionaryEncoder {
+/// `NSFoundationEncoder` facilitates the encoding of `Encodable` objects into NSFoundation data types.
+open class NSFoundationEncoder {
     
     // MARK: - Options
     /// Contextual user-provided information for use during encoding.
@@ -35,7 +34,7 @@ open class NSDictionaryEncoder {
         let dateFormatter: DateFormatter?
     }
     
-    // MARK: - Constructing a NSDictionary Encoder
+    // MARK: - Constructing a NSFoundation Encoder
     /// Initializes `self` with default strategies.
     public init() {}
     
@@ -106,7 +105,7 @@ fileprivate class _ContEncoder : Encoder {
     fileprivate var storage: _EncodingStorage
     
     /// Options set on the top-level encoder.
-    fileprivate let options: NSDictionaryEncoder._Options
+    fileprivate let options: NSFoundationEncoder._Options
     
     /// The path to the current point in encoding.
     fileprivate(set) public var codingPath: [CodingKey]
@@ -118,7 +117,7 @@ fileprivate class _ContEncoder : Encoder {
     
     // MARK: - Initialization
     /// Initializes `self` with the given top-level encoder options.
-    fileprivate init(options: NSDictionaryEncoder._Options, codingPath: [CodingKey] = []) {
+    fileprivate init(options: NSFoundationEncoder._Options, codingPath: [CodingKey] = []) {
         self.options = options
         self.storage = _EncodingStorage()
         self.codingPath = codingPath
@@ -182,7 +181,7 @@ fileprivate class _ContEncoder : Encoder {
 fileprivate struct _EncodingStorage {
     // MARK: Properties
     /// The container stack.
-    /// Elements may be any one of the NSDict / NSArray types (NSNumber, NSString, NSDate, NSArray, NSDictionary, NSNull).
+    /// Elements may be any one of the NSFoundation data types (NSNumber, NSString, NSDate, NSArray, NSDictionary, NSNull).
     private(set) fileprivate var containers: [NSObject] = []
     
     // MARK: - Initialization
@@ -594,10 +593,10 @@ fileprivate class _ReferencingEncoder : _ContEncoder {
 }
 
 //===----------------------------------------------------------------------===//
-// NSDictionary Decoder
+// NSFoundation Container Decoder
 //===----------------------------------------------------------------------===//
-/// `NSDictionaryDecoder` facilitates the decoding of NSDictionaries and NSArrays into semantic `Decodable` types.
-open class NSDictionaryDecoder {
+/// `NSFoundationDecoder` facilitates the decoding of NSFoundation containers into semantic `Decodable` types.
+open class NSFoundationDecoder {
     // MARK: Options
     
     /// Contextual user-provided information for use during decoding.
@@ -623,7 +622,7 @@ open class NSDictionaryDecoder {
     /// - parameter type: The type of the value to decode.
     /// - parameter data: The data to decode from.
     /// - returns: A value of the requested type along with the detected format of the container.
-    /// - throws: `DecodingError.dataCorrupted` if values requested from the payload are corrupted, or if the given data is not a valid NSDictionary or NSArray.
+    /// - throws: `DecodingError.dataCorrupted` if values requested from the payload are corrupted, or if the given data is not a valid NSFoundation container
     /// - throws: An error if any value throws an error during decoding.
     open func decode<T : Decodable>(_ type: T.Type, from data: NSObject) throws -> T {
         let topLevel: Any
@@ -662,7 +661,7 @@ fileprivate class _ContDecoder : Decoder {
     fileprivate var storage: _DecodingStorage
     
     /// Options set on the top-level decoder.
-    fileprivate let options: NSDictionaryDecoder._Options
+    fileprivate let options: NSFoundationDecoder._Options
     
     /// The path to the current point in encoding.
     fileprivate(set) public var codingPath: [CodingKey]
@@ -674,7 +673,7 @@ fileprivate class _ContDecoder : Decoder {
     
     // MARK: - Initialization
     /// Initializes `self` with the given top-level container and options.
-    fileprivate init(referencing container: Any, at codingPath: [CodingKey] = [], options: NSDictionaryDecoder._Options) {
+    fileprivate init(referencing container: Any, at codingPath: [CodingKey] = [], options: NSFoundationDecoder._Options) {
         self.storage = _DecodingStorage()
         self.storage.push(container: container)
         self.codingPath = codingPath

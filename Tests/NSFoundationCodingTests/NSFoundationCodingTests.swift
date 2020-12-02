@@ -1,9 +1,9 @@
 import Swift
 import Foundation
 import XCTest
-@testable import NSDictionaryEncoder
+@testable import NSFoundationCoding
 
-final class NSDictionaryEncoderTests: XCTestCase {
+final class NSFoundationCodingTests: XCTestCase {
     // MARK: - Encoding Top-Level Empty Types
     func testEncodingTopLevelEmptyStruct() {
         let empty = EmptyStruct()
@@ -182,7 +182,7 @@ final class NSDictionaryEncoderTests: XCTestCase {
         let dateFormatter = DateFormatter()
         dateFormatter.locale = Locale(identifier: "en_US")
         dateFormatter.setLocalizedDateFormatFromTemplate("MMMMd")
-        let encoder = NSDictionaryEncoder.init(dateFormatter: dateFormatter)
+        let encoder = NSFoundationEncoder.init(dateFormatter: dateFormatter)
         let formattedDateString = dateFormatter.string(from: date)
 
         struct DateContainer: Codable {
@@ -282,13 +282,13 @@ final class NSDictionaryEncoderTests: XCTestCase {
         //
         // The issue at hand reproduces when you have a referencing encoder (superEncoder() creates one) that has a container on the stack (unkeyedContainer() adds one) that encodes a value going through box_() (Array does that) that encodes something which throws (Throwing does that).
         // When reproducing, this will cause a test failure via fatalError().
-        let _: NSObject? = try? NSDictionaryEncoder().encode(Wrapper([Throwing()]))
+        let _: NSObject? = try? NSFoundationEncoder().encode(Wrapper([Throwing()]))
     }
 
     // MARK: - Decoder State
     func testDecoderStateThrowOnDecode() {
-        let array: NSArray = try! NSDictionaryEncoder().encode([1,2,3])
-        let _ = try! NSDictionaryDecoder().decode(EitherDecodable<[String], [Int]>.self, from: array)
+        let array: NSArray = try! NSFoundationEncoder().encode([1,2,3])
+        let _ = try! NSFoundationDecoder().decode(EitherDecodable<[String], [Int]>.self, from: array)
     }
 
     static var allTests = [
@@ -322,7 +322,7 @@ final class NSDictionaryEncoderTests: XCTestCase {
 private func _testRoundTrip<T>(of value: T, expectedNSDict dict: NSObject? = nil) where T : Codable, T : Equatable {
     var payload: NSObject! = nil
     do {
-        let encoder = NSDictionaryEncoder()
+        let encoder = NSFoundationEncoder()
         payload = try encoder.encode(value)
     } catch {
         XCTFail("Failed to encode \(T.self) to NSObject: \(error)")
@@ -333,7 +333,7 @@ private func _testRoundTrip<T>(of value: T, expectedNSDict dict: NSObject? = nil
     }
 
     do {
-        let decoded = try NSDictionaryDecoder().decode(T.self, from: payload)
+        let decoded = try NSFoundationDecoder().decode(T.self, from: payload)
         XCTAssertEqual(decoded, value, "\(T.self) did not round-trip to an equal value.")
     } catch {
         XCTFail("Failed to decode \(T.self) from NSObject: \(error)")
@@ -350,7 +350,7 @@ private func _testRoundTripTypeCoercionFailure<T,U>(of value: T, as type: U.Type
 
 private func _testEncodeNSDictFailure<T : Encodable>(of value: T) {
     do {
-        let encoder = NSDictionaryEncoder()
+        let encoder = NSFoundationEncoder()
         let _: NSDictionary = try encoder.encode(value)
         XCTFail("Encode of top-level \(T.self) was expected to fail.")
     } catch {}
