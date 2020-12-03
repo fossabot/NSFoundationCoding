@@ -227,14 +227,14 @@ final class NSFoundationCodingTests: XCTestCase {
     }
 
     func testDecodingConcreteTypeParameter() {
-        let encoder = PropertyListEncoder()
-        guard let plist = try? encoder.encode(Employee.testValue) else {
+        let encoder = NSFoundationEncoder()
+        guard let dict: NSDictionary = try? encoder.encode(Employee.testValue) else {
             XCTFail("Unable to encode Employee.")
             return
         }
 
-        let decoder = PropertyListDecoder()
-        guard let decoded = try? decoder.decode(Employee.self as Person.Type, from: plist) else {
+        let decoder = NSFoundationDecoder()
+        guard let decoded = try? decoder.decode(Employee.self as Person.Type, from: dict) else {
             XCTFail("Failed to decode Employee as Person from plist.")
             return
         }
@@ -290,32 +290,6 @@ final class NSFoundationCodingTests: XCTestCase {
         let array: NSArray = try! NSFoundationEncoder().encode([1,2,3])
         let _ = try! NSFoundationDecoder().decode(EitherDecodable<[String], [Int]>.self, from: array)
     }
-
-    static var allTests = [
-        ("testEncodingTopLevelEmptyStruct", testEncodingTopLevelEmptyStruct,
-         "testEncodingTopLevelEmptyClass", testEncodingTopLevelEmptyClass,
-         "testEncodingTopLevelSingleValueEnum", testEncodingTopLevelSingleValueEnum,
-         "testEncodingTopLevelSingleValueStruct", testEncodingTopLevelSingleValueStruct,
-         "testEncodingTopLevelSingleValueClass", testEncodingTopLevelSingleValueClass,
-         "testEncodingTopLevelStructuredStruct", testEncodingTopLevelStructuredStruct,
-         "testEncodingTopLevelStructuredClass", testEncodingTopLevelStructuredClass,
-         "testEncodingTopLevelStructuredSingleStruct", testEncodingTopLevelStructuredSingleStruct,
-         "testEncodingTopLevelStructuredSingleClass", testEncodingTopLevelStructuredSingleClass,
-         "testEncodingTopLevelDeepStructuredType", testEncodingTopLevelDeepStructuredType,
-         "testEncodingClassWhichSharesEncoderWithSuper", testEncodingClassWhichSharesEncoderWithSuper,
-         "testEncodingTopLevelNullableType", testEncodingTopLevelNullableType,
-         "testEncodingMultipleNestedContainersWithTheSameTopLevelKey", testEncodingMultipleNestedContainersWithTheSameTopLevelKey,
-         "testNestedContainerCodingPaths", testNestedContainerCodingPaths,
-         "testSuperEncoderCodingPaths", testSuperEncoderCodingPaths,
-         "testInterceptData", testInterceptData,
-         "testInterceptDateEncodeAsDate", testInterceptDateEncodeAsDate,
-         "testInterceptDateEncodeAsString", testInterceptDateEncodeAsString,
-         "testTypeCoercion", testTypeCoercion,
-         "testDecodingConcreteTypeParameter", testDecodingConcreteTypeParameter,
-         "testEncoderStateThrowOnEncode", testEncoderStateThrowOnEncode,
-         "testDecoderStateThrowOnDecode", testDecoderStateThrowOnDecode
-        ),
-    ]
 }
 
 // MARK: - Helper Functions
@@ -342,8 +316,8 @@ private func _testRoundTrip<T>(of value: T, expectedNSDict dict: NSObject? = nil
 
 private func _testRoundTripTypeCoercionFailure<T,U>(of value: T, as type: U.Type) where T : Codable, U : Codable {
     do {
-        let data = try PropertyListEncoder().encode(value)
-        let _ = try PropertyListDecoder().decode(U.self, from: data)
+        let data: NSDictionary = try NSFoundationEncoder().encode(value)
+        let _ = try NSFoundationDecoder().decode(U.self, from: data)
         XCTFail("Coercion from \(T.self) to \(U.self) was expected to fail.")
     } catch {}
 }
