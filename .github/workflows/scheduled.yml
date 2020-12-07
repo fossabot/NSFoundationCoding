@@ -1,0 +1,21 @@
+name: Scheduled Test
+
+on:
+  schedule:
+    # Run at 01:00 (UTC) every Sunday
+    - cron:  '0 1 * * 0'
+
+jobs:
+  build:
+
+    runs-on: macos-latest
+
+    steps:
+    - uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest-stable
+
+    - uses: actions/checkout@v2
+
+    - name: Build package & Run tests
+      run: swift test -v
