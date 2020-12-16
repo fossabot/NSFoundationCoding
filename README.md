@@ -1,4 +1,6 @@
 # Swift NSFoundation Coder
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Ffjuul%2FNSFoundationCoding.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Ffjuul%2FNSFoundationCoding?ref=badge_shield)
+
 
 A package for encoding `Encodable` Swift objects into NSFoundation containers and decoding NSFoundation containers into `Decodable` Swift objects. 
 
@@ -53,3 +55,7 @@ do {
     print("Failed to decode")
 }
 ```
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Ffjuul%2FNSFoundationCoding.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Ffjuul%2FNSFoundationCoding?ref=badge_large)
